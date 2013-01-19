@@ -55,8 +55,28 @@ void do_iot(unsigned short inst){
 
 void do_opr(unsigned short inst){
 
-if (~inst&(1<<8)){  //group 1 
+if (~inst&(1<<8)){    //group 1 
 
+  if (inst&(1<<7)){   //CLA
+       }
+  if (inst&(1<<6)){   //CLL
+       }
+  if (inst&(1<<5)){   //CMA
+       }
+  if (inst&(1<<4)){   //CML
+       }
+  if (inst&(1)){      //IAC
+       }
+  if ((inst&(1<<3))&&(~inst&(1<<1))){   //RAL
+       }
+  if ((inst&(1<<2))&&(~inst&(1<<1))){   //RAR
+       }
+  if ((inst&(1<<3))&&(inst&(1<<1))){   //RTL
+       }
+  if ((inst&(1<<2))&&(inst&(1<<1))){   //RTR
+       }
+  if ((inst&(1<<1))&&(~inst&(1<<3))&&(~inst(1<<1))){   //BSW
+       }
 }
 
 if ((inst&0x109)==0x100){  //group 2 OR
