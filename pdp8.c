@@ -38,6 +38,20 @@ return mem[addr] & 0x0fff;
 
 
 
+
+
+void dump(void){
+	printf("Memory Dump\n");
+	printf("PC:%04x:\n",CPU.PC);
+	printf("AC:%04x:\n",CPU.AC);
+	printf("\nmemory\n\n");
+	printf("0000:%04x:\n",mem[0]);
+}
+
+
+
+
+
 void do_iot(unsigned short inst){
 	unsigned short dev_num = (inst >> 3) & 0x1f;
 	device_f * dev = devs[dev_num];
@@ -75,7 +89,7 @@ if (~inst&(1<<8)){    //group 1
        }
   if ((inst&(1<<2))&&(inst&(1<<1))){   //RTR
        }
-  if ((inst&(1<<1))&&(~inst&(1<<3))&&(~inst(1<<1))){   //BSW
+  if ((inst&(1<<1))&&(~inst&(1<<3))&&(~inst&(1<<1))){   //BSW
        }
 }
 
@@ -101,13 +115,27 @@ if ((inst&0x101)==0x101){  //group 3
 
 
 
+void setup_mem(void){
+mem[0]=0x205; //TAD 05
+mem[1]=(6<<9);  //IOT
+mem[2]=0;
+mem[3]=0;
+mem[4]=0;
+mem[5]=3;
+}
+
+
+
+
 
 int main (void){
+
+  setup_mem();
 
   for (;;){
    unsigned short inst = mem[CPU.PC];
    switch (inst>>9){
-
+	
    case AND:{
         CPU.AC&=mem[M(inst)];
         CPU.PC++;   
@@ -153,6 +181,7 @@ int main (void){
 
 
    case IOT:{
+          dump();
          do_iot(inst);
         CPU.PC++;   
       break;}
