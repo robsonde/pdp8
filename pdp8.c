@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-enum {AND,TAD,ISZ,DCA,JMS,JMP};
+enum {AND,TAD,ISZ,DCA,JMS,JMP,IOT,OPR};
 
 struct CPU{
 unsigned short IF:3;
@@ -35,6 +35,27 @@ return mem[page+disp];
 
 
 
+
+
+void do_iot(void){
+
+}
+
+
+
+void do_opr(void){
+
+}
+
+
+
+
+
+
+
+
+
+
 int main (void){
 
   for (;;){
@@ -46,12 +67,14 @@ int main (void){
         CPU.PC++;   
        break;}
 
+
    case TAD:{
         unsigned short oldAC=CPU.AC;
 	CPU.AC+=mem[M(inst)];
         if (oldAC > CPU.AC) {CPU.link^=1;}
         CPU.PC++;   
        break;}    
+
 
    case ISZ:{
         unsigned short m = M(inst);
@@ -63,11 +86,13 @@ int main (void){
         CPU.PC++;   
        break;}
 
+
    case DCA:{
         mem[M(inst)]=CPU.AC;
         CPU.AC=0;
         CPU.PC++;   
        break;}
+
 
    case JMS:{
        unsigned short m = M(inst);
@@ -75,8 +100,21 @@ int main (void){
        CPU.PC=m+1;
       break;}
 
+
    case JMP:{
        CPU.PC=mem[M(inst)];
+      break;}
+
+
+   case IOT:{
+         do_iot();
+        CPU.PC++;   
+      break;}
+
+
+   case OPR:{
+         do_opr();
+        CPU.PC++;   
       break;}
 
 
