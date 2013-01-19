@@ -38,9 +38,6 @@ return mem[addr] & 0x0fff;
 
 
 
-
-
-
 void do_iot(unsigned short inst){
 	unsigned short dev_num = (inst >> 3) & 0x1f;
 	device_f * dev = devs[dev_num];
@@ -55,14 +52,31 @@ void do_iot(unsigned short inst){
 
 
 
-void do_opr(void){
+
+void do_opr(unsigned short inst){
+
+if (~inst&(1<<8)){  //group 1 
+
+}
+
+if ((inst&0x109)==0x100){  //group 2 OR
+
+}
+
+if ((inst&0x109)==0x108){  //group 2 AND
+
+}
+
+if ((inst&0x109)==0x108){  //priv group 2
+
+}
+
+if ((inst&0x101)==0x101){  //group 3
 
 }
 
 
-
-
-
+}
 
 
 
@@ -125,7 +139,7 @@ int main (void){
 
 
    case OPR:{
-         do_opr();
+         do_opr(inst);
         CPU.PC++;   
       break;}
 
