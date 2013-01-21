@@ -117,12 +117,16 @@ void do_opr(unsigned short inst){
 
 
 void setup_mem(void){
-mem[0]=0x205; //TAD 05
-mem[1]=(6<<9);  //IOT
-mem[2]=0;
+mem[0]=07200;         // CLA
+mem[1]=9;  //AND mem[9]
+mem[2]=(6<<9);        //IOT dump memory
 mem[3]=0;
 mem[4]=0;
-mem[5]=3;
+mem[5]=0;
+mem[6]=0;
+mem[7]=0;
+mem[8]=3;
+mem[9]=5;
 }
 
 
@@ -138,8 +142,11 @@ int main (void){
    switch (inst>>9){
 	
    case AND:{
+	printf("AND\n");
+	printf("AND:  AC:%04x mem:%04x\n",CPU.AC,mem[M(inst)]);
         CPU.AC&=mem[M(inst)];
-        CPU.PC++;   
+	printf("AND:  AC:%04x mem:%04x\n",CPU.AC,mem[M(inst)]);
+        CPU.PC++;
        break;}
 
    case TAD:{
@@ -176,7 +183,7 @@ int main (void){
       break;}
 
    case IOT:{
-          dump();
+          dump();  //debug
          do_iot(inst);
         CPU.PC++;   
       break;}
