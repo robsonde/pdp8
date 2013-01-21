@@ -15,6 +15,8 @@ unsigned short MQ:12;
 
 unsigned short mem[4096];
 
+unsigned short FPswitches;
+
 typedef void device_f(unsigned short func);
 device_f *devs[32];
 
@@ -69,26 +71,43 @@ void do_iot(unsigned short inst){
 
 void do_opr(unsigned short inst){
 
-if (~inst&(1<<8)){    //group 1 
-
+ if (~inst&(1<<8)){    //group 1 
+    if ((inst&07200)==07200){CPU.AC=0;}  //CLA
+    if ((inst&07100)==07100){CPU.link=0;}  //CLL
+    if ((inst&07040)==07040){CPU.AC^=07777;}  //CMA
+    if ((inst&07020)==07020){CPU.link^=1;}  //CML
+    if ((inst&07001)==07001){}  //IAC    FIXME
+    if ((inst&07010)==07010){CPU.AC=CPU.AC>>1;}  //RAR
+    if ((inst&07004)==07004){CPU.AC=CPU.AC<<1;}  //RAL
+    if ((inst&07012)==07012){CPU.AC=CPU.AC>>2;}  //RTR
+    if ((inst&07006)==07006){CPU.AC=CPU.AC<<2;}  //RTL
+    if ((inst&07002)==07002){}  //RTL   FIXME
 }
 
-if ((inst&0x109)==0x100){  //group 2 OR
+ if ((inst&0x109)==0x100){  //group 2 OR
+    if ((inst&07500)==07500){}  //SMA    FIXME
+    if ((inst&07440)==07440){if (CPU.AC==0){CPU.PC++;}}  //SZA
+    if ((inst&07420)==07420){if (CPU.link==1){CPU.PC++;}}  //SNL
+    if ((inst&07600)==07600){CPU.AC=0;}  //CLA
+ }
 
-}
+ if ((inst&0x109)==0x108){  //group 2 AND
+   if ((inst&07510)==07510){}  //SPA   FIXME
+   if ((inst&07450)==07450){if (CPU.AC!=0){CPU.PC++;}}  //SNA
+   if ((inst&07430)==07430){if (CPU.link==0){CPU.PC++;}}  //SZL
+   if ((inst&07610)==07610){CPU.AC=0;}  //CLA
+ }
 
-if ((inst&0x109)==0x108){  //group 2 AND
+ if ((inst&0x109)==0x108){  //priv group 2
+   if ((inst&07404)==07404){CPU.AC^=FPswitches;}  //OSR
+   if ((inst&07402)==07402){}  //HLT  FIXME
+ }
 
-}
-
-if ((inst&0x109)==0x108){  //priv group 2
-
-}
-
-if ((inst&0x101)==0x101){  //group 3
-
-}
-
+ if ((inst&0x101)==0x101){  //group 3
+   if ((inst&07601)==07601){CPU.AC=0;}  //CLA
+   if ((inst&07501)==07501){CPU.AC^=CPU.MQ;}  //MQA
+   if ((inst&07421)==07421){CPU.MQ=CPU.AC; CPU.AC=0;}  //MQL
+ }
 }
 
 
