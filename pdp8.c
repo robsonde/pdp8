@@ -76,7 +76,7 @@ void do_opr(unsigned short inst){
     if ((inst&07100)==07100){CPU.link=0;}  //CLL
     if ((inst&07040)==07040){CPU.AC^=07777;}  //CMA
     if ((inst&07020)==07020){CPU.link^=1;}  //CML
-    if ((inst&07001)==07001){}  //IAC    FIXME
+    if ((inst&07001)==07001){CPU.AC++;}  //IAC    FIXME
     if ((inst&07010)==07010){CPU.AC=CPU.AC>>1;}  //RAR
     if ((inst&07004)==07004){CPU.AC=CPU.AC<<1;}  //RAL
     if ((inst&07012)==07012){CPU.AC=CPU.AC>>2;}  //RTR
@@ -118,15 +118,21 @@ void do_opr(unsigned short inst){
 
 void setup_mem(void){
 mem[0]=07200;         // CLA
-mem[1]=9;  //AND mem[9]
-mem[2]=(6<<9);        //IOT dump memory
-mem[3]=0;
-mem[4]=0;
-mem[5]=0;
-mem[6]=0;
+mem[1]=07001;         //IAC
+mem[2]=07001;         //IAC
+mem[3]=07001;         //IAC
+mem[4]=07001;         //IAC
+mem[5]=07001;         //IAC
+mem[5]=04007;         //JMS 7
+mem[6]=(6<<9);        //IOT dump memory
 mem[7]=0;
-mem[8]=3;
-mem[9]=5;
+mem[8]=07001;
+mem[9]=07001;
+mem[10]=07001;
+mem[11]=07001;
+mem[12]=07010;
+mem[13]=05007;
+mem[14]=06000;
 }
 
 
@@ -142,10 +148,7 @@ int main (void){
    switch (inst>>9){
 	
    case AND:{
-	printf("AND\n");
-	printf("AND:  AC:%04x mem:%04x\n",CPU.AC,mem[M(inst)]);
         CPU.AC&=mem[M(inst)];
-	printf("AND:  AC:%04x mem:%04x\n",CPU.AC,mem[M(inst)]);
         CPU.PC++;
        break;}
 
