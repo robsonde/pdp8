@@ -26,12 +26,12 @@ struct CPU CPU;
 
 
 unsigned short M(unsigned short inst) {
-int I = inst & (1>>8);
-int Z = inst & (1>>7);
+int I = inst & (1<<8);
+int Z = inst & (1<<7);
 unsigned short disp = inst & 0x7f;
-
-unsigned short page = Z ? 0 : (CPU.PC & ~0x7f);
+unsigned short page = Z ? (CPU.PC & ~0x7f) : 0;
 unsigned short addr = (page + disp) & 0x0fff;
+printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
 if ( !I ){ return addr; }
 return mem[addr] & 0x0fff;
 }
@@ -119,7 +119,8 @@ void do_opr(unsigned short inst){
 
 
 void setup_mem(void){
-mem[0]=05200;         //JMP 0200
+mem[0]=05601;         //JMP 0200
+mem[1]=00200;         //JMP 0200
 mem[0200]=07300;
 mem[0201]=01300;
 mem[0202]=01301;
@@ -180,7 +181,9 @@ int main (void){
       break;}
 
    case JMP:{
-       CPU.PC=mem[M(inst)];
+       unsigned short ADDR=M(inst);
+       CPU.PC=00777&ADDR;
+     printf("JMP ADDR: %o\n",ADDR); 
       break;}
 
    case IOT:{
