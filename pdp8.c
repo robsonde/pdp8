@@ -43,11 +43,11 @@ return mem[addr] & 0x0fff;
 
 
 void dump(void){
-	printf("Memory Dump\n");
-	printf("PC:%04x:\n",CPU.PC);
-	printf("AC:%04x:\n",CPU.AC);
-	printf("\nmemory\n\n");
-	printf("0000:%04x:\n",mem[0]);
+   unsigned short inst = mem[CPU.PC];
+	printf("PC:%04o:\n",CPU.PC);
+	printf("AC:%04o:\n",CPU.AC);
+	printf("INST:%04o:\n",inst);
+        getchar();
 }
 
 
@@ -76,23 +76,25 @@ void do_opr(unsigned short inst){
     if ((inst&07100)==07100){CPU.link=0;}  //CLL
     if ((inst&07040)==07040){CPU.AC^=07777;}  //CMA
     if ((inst&07020)==07020){CPU.link^=1;}  //CML
-    if ((inst&07001)==07001){CPU.AC++;}  //IAC    FIXME
+    if ((inst&07001)==07001){unsigned short oldAC=CPU.AC; //IAC
+                             CPU.AC++;
+                             if (oldAC > CPU.AC) {CPU.link^=1;} }
     if ((inst&07010)==07010){CPU.AC=CPU.AC>>1;}  //RAR
     if ((inst&07004)==07004){CPU.AC=CPU.AC<<1;}  //RAL
     if ((inst&07012)==07012){CPU.AC=CPU.AC>>2;}  //RTR
     if ((inst&07006)==07006){CPU.AC=CPU.AC<<2;}  //RTL
-    if ((inst&07002)==07002){}  //RTL   FIXME
+    if ((inst&07002)==07002){CPU.AC=(CPU.AC<<6)|(CPU.AC>>6);}  //BSW
 }
 
  if ((inst&0x109)==0x100){  //group 2 OR
-    if ((inst&07500)==07500){}  //SMA    FIXME
+    if ((inst&07500)==07500){if (CPU.AC&(1<<11)){CPU.PC++;}}  //SMA
     if ((inst&07440)==07440){if (CPU.AC==0){CPU.PC++;}}  //SZA
     if ((inst&07420)==07420){if (CPU.link==1){CPU.PC++;}}  //SNL
     if ((inst&07600)==07600){CPU.AC=0;}  //CLA
  }
 
  if ((inst&0x109)==0x108){  //group 2 AND
-   if ((inst&07510)==07510){}  //SPA   FIXME
+   if ((inst&07510)==07510){if ((CPU.AC&(1<<11))!=0400){CPU.PC++;}}  //SPA 
    if ((inst&07450)==07450){if (CPU.AC!=0){CPU.PC++;}}  //SNA
    if ((inst&07430)==07430){if (CPU.link==0){CPU.PC++;}}  //SZL
    if ((inst&07610)==07610){CPU.AC=0;}  //CLA
@@ -117,22 +119,15 @@ void do_opr(unsigned short inst){
 
 
 void setup_mem(void){
-mem[0]=07200;         // CLA
-mem[1]=07001;         //IAC
-mem[2]=07001;         //IAC
-mem[3]=07001;         //IAC
-mem[4]=07001;         //IAC
-mem[5]=07001;         //IAC
-mem[5]=04007;         //JMS 7
-mem[6]=(6<<9);        //IOT dump memory
-mem[7]=0;
-mem[8]=07001;
-mem[9]=07001;
-mem[10]=07001;
-mem[11]=07001;
-mem[12]=07010;
-mem[13]=05007;
-mem[14]=06000;
+mem[0]=05200;         //JMP 0200
+mem[0200]=07300;
+mem[0201]=01300;
+mem[0202]=01301;
+mem[0203]=03302;
+mem[0204]=07402;
+mem[0205]=05200;
+mem[0300]=00002;
+mem[0301]=00003;
 }
 
 
@@ -145,6 +140,9 @@ int main (void){
 
   for (;;){
    unsigned short inst = mem[CPU.PC];
+   
+   dump(); //debug
+
    switch (inst>>9){
 	
    case AND:{
@@ -186,7 +184,6 @@ int main (void){
       break;}
 
    case IOT:{
-          dump();  //debug
          do_iot(inst);
         CPU.PC++;   
       break;}
