@@ -59,8 +59,14 @@ char * num_to_binary(unsigned short num)
 
 
 void blinken_lights(void){
+printf("IF: %s\n", num_to_binary(CPU.IF));
+printf("IB: %s\n", num_to_binary(CPU.IB));
 printf("PC: %s\n", num_to_binary(CPU.PC));
+printf("DF: %s\n", num_to_binary(CPU.DF));
+printf("indirect: %s\n", num_to_binary(CPU.indirect));
+printf("link: %s\n", num_to_binary(CPU.link));
 printf("AC: %s\n", num_to_binary(CPU.AC));
+printf("MQ: %s\n", num_to_binary(CPU.MQ));
 }
 
 
