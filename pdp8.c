@@ -32,7 +32,7 @@ int Z = inst & (1<<7);
 unsigned short disp = inst & 0x7f;
 unsigned short page = Z ? (CPU.PC & ~0x7f) : 0;
 unsigned short addr = (page + disp) & 0x0fff;
-printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
+//printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
 if ( !I ){ return addr; }
 return mem[addr] & 0x0fff;
 }
@@ -42,14 +42,26 @@ return mem[addr] & 0x0fff;
 
 
 
-
-void dump(void){
-   unsigned short inst = mem[CPU.PC];
-	printf("PC:%04o:\n",CPU.PC);
-	printf("AC:%04o:\n",CPU.AC);
-	printf("INST:%04o:\n",inst);
-        getchar();
+char * num_to_binary(unsigned short num)
+{
+	static char bin[13]; 	
+	int i;
+	for (i=0; i<12; i++)
+		bin[11-i] = (num & (1<<i)) ? '1' : '0';
+	bin[12] = 0;
+	return bin;
 }
+
+
+
+
+
+
+
+void blinken_lights(void){
+printf("PC: %s\n", num_to_binary(CPU.PC));
+}
+
 
 
 
@@ -71,18 +83,10 @@ void do_iot(unsigned short inst){
 
 
 void do_mmu(unsigned short func,unsigned short dev_num){
-   printf("doing MMU stuff %04o:%04o\n",func,dev_num);
-   printf("DF = %04o\n",CPU.DF);
-   printf("IF = %04o\n",CPU.IF);
-   printf("IB = %04o\n",CPU.IB);
-
+   printf("do MMU%04o\n",dev_num);
    if (func==1){CPU.DF=dev_num&07;}  //CDF
    if (func==2){CPU.IB=dev_num&07;}  //CIF
    if (func==3){CPU.IB=dev_num&07;  CPU.DF=dev_num&07;}  //CDI
-
-   printf("DF = %04o\n",CPU.DF);
-   printf("IF = %04o\n",CPU.IF);
-   printf("IB = %04o\n",CPU.IB);
 }
 
 
@@ -281,35 +285,35 @@ int main (void){
   devs[022]=do_mmu;
   devs[023]=do_mmu;
   devs[024]=do_mmu;
-
-
-
+  devs[025]=do_mmu;
+  devs[026]=do_mmu;
+  devs[027]=do_mmu;
 
   setup_mem();
 
 CPU.PC=026;
 
   for (;;){
-   unsigned short inst = mem[CPU.PC];
+   unsigned short inst = mem[CPU.IF<<12|CPU.PC];
    
-   dump(); //debug
+   blinken_lights();
 
    switch (inst>>9){
 	
    case AND:{
-        CPU.AC&=mem[M(inst)];
+        CPU.AC&=mem[ CPU.DF<<12|M(inst) ];
         CPU.PC++;
        break;}
 
    case TAD:{
         unsigned short oldAC=CPU.AC;
-	CPU.AC+=mem[M(inst)];
+	CPU.AC+=mem[ CPU.DF<<12|M(inst) ];
         if (oldAC > CPU.AC) {CPU.link^=1;}
         CPU.PC++;   
        break;}    
 
    case ISZ:{
-        unsigned short m = M(inst);
+        unsigned short m = CPU.DF<<12|M(inst);
         unsigned short oldMEM=mem[m];
         unsigned short newMEM=oldMEM+1; 
         newMEM&=0xfff;
@@ -319,30 +323,31 @@ CPU.PC=026;
        break;}
 
    case DCA:{
-        mem[M(inst)]=CPU.AC;
+        mem[CPU.DF<<12|M(inst)]=CPU.AC;
         CPU.AC=0;
         CPU.PC++;   
        break;}
 
    case JMS:{
+       CPU.IF=CPU.IB;
        unsigned short m = M(inst);
        mem[m]=CPU.PC+1;
        CPU.PC=m+1;
       break;}
 
    case JMP:{
+       CPU.IF=CPU.IB;
        unsigned short ADDR=M(inst);
        CPU.PC=00777&ADDR;
-     printf("JMP ADDR: %o\n",ADDR); 
       break;}
 
    case IOT:{
-         do_iot(inst);
+        do_iot(inst);
         CPU.PC++;   
       break;}
 
    case OPR:{
-         do_opr(inst);
+        do_opr(inst);
         CPU.PC++;   
       break;}
 
