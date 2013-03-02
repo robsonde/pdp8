@@ -31,11 +31,13 @@ int I = inst & (1<<8);
 int Z = inst & (1<<7);
 unsigned short disp = inst & 0x7f;
 unsigned short page = Z ? (CPU.PC & ~0x7f) : 0;
-unsigned short field = Z ? 0 : (CPU.DF<<12);
-unsigned short addr = field | ((page + disp) & 0x0fff);
+unsigned short field = CPU.DF<<12;
+unsigned short addr = (page + disp) & 0x0fff;
 printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
+
 if ( !I ){ return addr; }
-return mem[addr] & 077777;
+return (field|mem[addr]) & 077777;
+
 }
 
 
@@ -265,17 +267,16 @@ mem[0135]=03571;  //DCA @171 LastRand
 mem[0136]=02171;  //ISZ 171 LastRand
 mem[0137]=05132;  //JMP 132 Fillmem
  
-//mem[0140]=01130;
-mem[0140]=06000;
-mem[0141]=01151;
-mem[0142]=03130;
-mem[0143]=01130;
-mem[0144]=00156;
-mem[0145]=07440;
-mem[0146]=05130;
-mem[0147]=06201;
+mem[0140]=01130;  //TAD 130 NewDatafield
+mem[0141]=01151;  //TAD 151 C0010
+mem[0142]=03130;  //DCA 130 NewDataField
+mem[0143]=01130;  //TAD 130 NewDataField
+mem[0144]=00156;  //AND 156 CInstField
+mem[0145]=07440;  //SZA
+mem[0146]=05130;  //JMP 130 NewDataField
+mem[0147]=06201;  //CFD 00
 
-mem[0150]=05012;
+mem[0150]=05012;  //JMP 012 ChangLights
 mem[0151]=00010;
 mem[0152]=00077;
 mem[0153]=00177;
