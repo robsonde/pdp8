@@ -33,7 +33,7 @@ unsigned short disp = inst & 0x7f;
 unsigned short page = Z ? (CPU.PC & ~0x7f) : 0;
 unsigned short field = CPU.DF<<12;
 unsigned short addr = (page + disp) & 0x0fff;
-printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
+//printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
 
 if ( !I ){ return addr; }
 return (field|mem[addr]) & 077777;
@@ -313,13 +313,13 @@ int main (void){
   for (;;){
    unsigned short inst = mem[CPU.IF<<12|CPU.PC];
    
- //  blinken_lights();
+ blinken_lights();
 
    switch (inst>>9){
 	
    case AND:{
         unsigned short m = M(inst);
-        printf("AND - PC:%04o AC:%04o data:%04o mem:%04o\n",CPU.PC,CPU.AC,mem[m],m);   
+  //      printf("AND - PC:%04o AC:%04o data:%04o mem:%04o\n",CPU.PC,CPU.AC,mem[m],m);   
         CPU.AC&=mem[ m ];
         CPU.PC++;
        break;}
@@ -327,7 +327,7 @@ int main (void){
    case TAD:{
         unsigned short oldAC=CPU.AC;
         unsigned short m = M(inst);
-        printf("TAD - PC:%04o AC:%04o mem:%04o\n",CPU.PC,CPU.AC,m);   
+ //       printf("TAD - PC:%04o AC:%04o mem:%04o\n",CPU.PC,CPU.AC,m);   
 	CPU.AC+=mem[m];
         if (oldAC > CPU.AC) {CPU.link^=1;}
         CPU.PC++;   
@@ -337,7 +337,7 @@ int main (void){
         unsigned short m = M(inst);
         unsigned short oldMEM=mem[m];
         unsigned short newMEM=oldMEM+1; 
-        printf("ISZ - PC:%04o data:%04o mem:%04o\n",CPU.PC,mem[m],m);   
+   //     printf("ISZ - PC:%04o data:%04o mem:%04o\n",CPU.PC,mem[m],m);   
         newMEM&=07777;
         mem[m]=newMEM;
         if (newMEM==0){CPU.PC++;}
@@ -347,7 +347,7 @@ int main (void){
    case DCA:{
         unsigned short m = M(inst);
         mem[m]=CPU.AC;
-        printf("DCA - PC:%04o store:%04o at:%04o\n",CPU.PC,CPU.AC,m);   
+     //   printf("DCA - PC:%04o store:%04o at:%04o\n",CPU.PC,CPU.AC,m);   
         CPU.AC=0;
         CPU.PC++;
        break;}
@@ -355,7 +355,7 @@ int main (void){
    case JMS:{
        CPU.IF=CPU.IB;
        unsigned short m = M(inst);
-       printf("JMS - PC:%04o JMS:%04o\n",CPU.PC,m);   
+ //      printf("JMS - PC:%04o JMS:%04o\n",CPU.PC,m);   
        mem[m]=CPU.PC+1;
        CPU.PC=m+1;
       break;}
@@ -363,7 +363,7 @@ int main (void){
    case JMP:{
        CPU.IF=CPU.IB;
        unsigned short m=M(inst);
-       printf("JMP - PC:%04o JMP:%04o\n",CPU.PC,m);   
+ //      printf("JMP - PC:%04o JMP:%04o\n",CPU.PC,m);   
        CPU.PC=00777&m;
       break;}
 
