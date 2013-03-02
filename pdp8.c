@@ -17,7 +17,7 @@ unsigned short mem[4096];
 
 unsigned short FPswitches;
 
-typedef void device_f(unsigned short func);
+typedef void device_f(unsigned short func,unsigned short dev_num);
 device_f *devs[32];
 
 struct CPU CPU;
@@ -58,12 +58,28 @@ void do_iot(unsigned short inst){
 	unsigned short dev_num = (inst >> 3) & 0x1f;
 	device_f * dev = devs[dev_num];
 	if (!dev) {
-		printf("no such device %d\n", dev_num);
+		printf("no such device %04o\n", dev_num);
 		exit(1);
 	}
 	else {
-		dev(inst & 0x7);
+		dev(inst & 0x7,dev_num);
 	}
+}
+
+
+
+
+void do_mmu(unsigned short func,unsigned short dev_num){
+   printf("doing MMU stuff %04o:%04o\n",func,dev_num);
+   printf("DF = %04o\n",CPU.DF);
+   printf("IF = %04o\n",CPU.IF);
+
+   if (func==1){CPU.DF=dev_num&07;}  //CDF
+   if (func==2){CPU.IF=dev_num&07;}  //CIF
+
+   printf("DF = %04o\n",CPU.DF);
+   printf("IF = %04o\n",CPU.IF);
+
 }
 
 
@@ -256,6 +272,15 @@ mem[0162]=07770;
 
 
 int main (void){
+
+  devs[020]=do_mmu;
+  devs[021]=do_mmu;
+  devs[022]=do_mmu;
+  devs[023]=do_mmu;
+  devs[024]=do_mmu;
+
+
+
 
   setup_mem();
 
