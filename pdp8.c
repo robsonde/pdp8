@@ -31,10 +31,11 @@ int I = inst & (1<<8);
 int Z = inst & (1<<7);
 unsigned short disp = inst & 0x7f;
 unsigned short page = Z ? (CPU.PC & ~0x7f) : 0;
-unsigned short addr = (page + disp) & 0x0fff;
-//printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
+unsigned short field = Z ? 0 : (CPU.DF<<12);
+unsigned short addr = field | ((page + disp) & 0x0fff);
+printf("I:%d Z:%d DISP:%o PAGE:%o ADDR:%o \n",I,Z,disp,page,addr);
 if ( !I ){ return addr; }
-return mem[addr] & 0x0fff;
+return mem[addr] & 077777;
 }
 
 
@@ -58,7 +59,7 @@ char * num_to_binary(unsigned short num)
 
 
 
-void blinken_lights(void){
+void dump(void){
 printf("IF: %s\n", num_to_binary(CPU.IF));
 printf("IB: %s\n", num_to_binary(CPU.IB));
 printf("PC: %s\n", num_to_binary(CPU.PC));
@@ -67,6 +68,14 @@ printf("indirect: %s\n", num_to_binary(CPU.indirect));
 printf("link: %s\n", num_to_binary(CPU.link));
 printf("AC: %s\n", num_to_binary(CPU.AC));
 printf("MQ: %s\n", num_to_binary(CPU.MQ));
+}
+
+
+
+
+void blinken_lights(void){
+printf("PC: %s\n", num_to_binary(CPU.PC));
+printf("AC: %s\n", num_to_binary(CPU.AC));
 }
 
 
@@ -242,21 +251,22 @@ mem[0120]=01166;
 mem[0121]=07004;
 mem[0122]=03166;
 mem[0123]=05075;
-mem[0124]=07200;
-mem[0125]=03171;
-mem[0126]=01161;
-mem[0127]=03130;
+mem[0124]=07200;  //CLA
+mem[0125]=03171;  //DCA 171 LastRand
+mem[0126]=01161;  //TAD 161 Cfistdatafield
+mem[0127]=03130;  //DCA 130 Newdatafield
 
-mem[0130]=06211;
-mem[0131]=07200;
-mem[0132]=01171;
-mem[0133]=00153;
-mem[0134]=01160;
-mem[0135]=03571;
-mem[0136]=02171;
-mem[0137]=05132;
+mem[0130]=06211;  //CFD 1
+mem[0131]=07200;  //CLA
+mem[0132]=01171;  //TAD 171 LastRand    fillmem
+mem[0133]=00153;  //AND 153 C0177
+mem[0134]=01160;  //TAD 160 CJmpCurrentPg
+mem[0135]=03571;  //DCA @171 LastRand
+mem[0136]=02171;  //ISZ 171 LastRand
+mem[0137]=05132;  //JMP 132 Fillmem
  
-mem[0140]=01130;
+//mem[0140]=01130;
+mem[0140]=06000;
 mem[0141]=01151;
 mem[0142]=03130;
 mem[0143]=01130;
@@ -297,54 +307,63 @@ int main (void){
 
   setup_mem();
 
-CPU.PC=026;
+  CPU.PC=026;
 
   for (;;){
    unsigned short inst = mem[CPU.IF<<12|CPU.PC];
    
-   blinken_lights();
+ //  blinken_lights();
 
    switch (inst>>9){
 	
    case AND:{
-        CPU.AC&=mem[ CPU.DF<<12|M(inst) ];
+        unsigned short m = M(inst);
+        printf("AND - PC:%04o AC:%04o data:%04o mem:%04o\n",CPU.PC,CPU.AC,mem[m],m);   
+        CPU.AC&=mem[ m ];
         CPU.PC++;
        break;}
 
    case TAD:{
         unsigned short oldAC=CPU.AC;
-	CPU.AC+=mem[ CPU.DF<<12|M(inst) ];
+        unsigned short m = M(inst);
+        printf("TAD - PC:%04o AC:%04o mem:%04o\n",CPU.PC,CPU.AC,m);   
+	CPU.AC+=mem[m];
         if (oldAC > CPU.AC) {CPU.link^=1;}
         CPU.PC++;   
        break;}    
 
    case ISZ:{
-        unsigned short m = CPU.DF<<12|M(inst);
+        unsigned short m = M(inst);
         unsigned short oldMEM=mem[m];
         unsigned short newMEM=oldMEM+1; 
-        newMEM&=0xfff;
+        printf("ISZ - PC:%04o data:%04o mem:%04o\n",CPU.PC,mem[m],m);   
+        newMEM&=07777;
         mem[m]=newMEM;
         if (newMEM==0){CPU.PC++;}
         CPU.PC++;   
        break;}
 
    case DCA:{
-        mem[CPU.DF<<12|M(inst)]=CPU.AC;
+        unsigned short m = M(inst);
+        mem[m]=CPU.AC;
+        printf("DCA - PC:%04o store:%04o at:%04o\n",CPU.PC,CPU.AC,m);   
         CPU.AC=0;
-        CPU.PC++;   
+        CPU.PC++;
        break;}
 
    case JMS:{
        CPU.IF=CPU.IB;
        unsigned short m = M(inst);
+       printf("JMS - PC:%04o JMS:%04o\n",CPU.PC,m);   
        mem[m]=CPU.PC+1;
        CPU.PC=m+1;
       break;}
 
    case JMP:{
        CPU.IF=CPU.IB;
-       unsigned short ADDR=M(inst);
-       CPU.PC=00777&ADDR;
+       unsigned short m=M(inst);
+       printf("JMP - PC:%04o JMP:%04o\n",CPU.PC,m);   
+       CPU.PC=00777&m;
       break;}
 
    case IOT:{
