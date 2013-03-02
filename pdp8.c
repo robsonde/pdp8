@@ -4,16 +4,17 @@
 enum {AND,TAD,ISZ,DCA,JMS,JMP,IOT,OPR};
 
 struct CPU{
-unsigned short IF:3;
-unsigned short PC:12;
-unsigned short DF:3;
+unsigned short IF:3;   // instruction field
+unsigned short IB:3;   // instruction buffer
+unsigned short PC:12;  // program count
+unsigned short DF:3;   // data field
 unsigned short indirect:12;
 unsigned short link:1;
 unsigned short AC:12;
 unsigned short MQ:12;
 };
 
-unsigned short mem[4096];
+unsigned short mem[65535];
 
 unsigned short FPswitches;
 
@@ -73,13 +74,15 @@ void do_mmu(unsigned short func,unsigned short dev_num){
    printf("doing MMU stuff %04o:%04o\n",func,dev_num);
    printf("DF = %04o\n",CPU.DF);
    printf("IF = %04o\n",CPU.IF);
+   printf("IB = %04o\n",CPU.IB);
 
    if (func==1){CPU.DF=dev_num&07;}  //CDF
-   if (func==2){CPU.IF=dev_num&07;}  //CIF
+   if (func==2){CPU.IB=dev_num&07;}  //CIF
+   if (func==3){CPU.IB=dev_num&07;  CPU.DF=dev_num&07;}  //CDI
 
    printf("DF = %04o\n",CPU.DF);
    printf("IF = %04o\n",CPU.IF);
-
+   printf("IB = %04o\n",CPU.IB);
 }
 
 
