@@ -60,6 +60,7 @@ char * num_to_binary(unsigned short num)
 
 void blinken_lights(void){
 printf("PC: %s\n", num_to_binary(CPU.PC));
+printf("AC: %s\n", num_to_binary(CPU.AC));
 }
 
 
@@ -83,7 +84,6 @@ void do_iot(unsigned short inst){
 
 
 void do_mmu(unsigned short func,unsigned short dev_num){
-   printf("do MMU%04o\n",dev_num);
    if (func==1){CPU.DF=dev_num&07;}  //CDF
    if (func==2){CPU.IB=dev_num&07;}  //CIF
    if (func==3){CPU.IB=dev_num&07;  CPU.DF=dev_num&07;}  //CDI
