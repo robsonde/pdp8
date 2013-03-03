@@ -9,6 +9,7 @@ unsigned short IB:3;   // instruction buffer
 unsigned short PC:12;  // program count
 unsigned short DF:3;   // data field
 unsigned short indirect:12;
+unsigned short FlagsBuffer:12;
 unsigned short link:1;
 unsigned short AC:12;
 unsigned short MQ:12;
@@ -77,7 +78,7 @@ printf("MQ: %s\n", num_to_binary(CPU.MQ));
 
 void blinken_lights(void){
 printf("PC: %s\n", num_to_binary(CPU.PC));
-printf("AC: %s\n", num_to_binary(CPU.AC));
+//printf("AC: %s\n", num_to_binary(CPU.AC));
 }
 
 
@@ -105,6 +106,20 @@ void do_mmu(unsigned short func,unsigned short dev_num){
    if (func==2){CPU.IB=dev_num&07;}  //CIF
    if (func==3){CPU.IB=dev_num&07;  CPU.DF=dev_num&07;}  //CDI
 }
+
+
+
+void do_CPU_flags(unsigned short func,unsigned short dev_num){
+dev_num=dev_num;  
+
+if (func==5){
+	CPU.DF=CPU.AC&07;
+	CPU.IF=(CPU.AC&070)>>3;
+	}  //RTF
+}
+
+
+
 
 
 
@@ -297,6 +312,8 @@ mem[0162]=07770;
 
 int main (void){
 
+
+  devs[000]=do_CPU_flags;
   devs[020]=do_mmu;
   devs[021]=do_mmu;
   devs[022]=do_mmu;
@@ -305,6 +322,10 @@ int main (void){
   devs[025]=do_mmu;
   devs[026]=do_mmu;
   devs[027]=do_mmu;
+
+
+
+
 
   setup_mem();
 
